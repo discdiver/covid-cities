@@ -6,16 +6,20 @@ import plotly.express as px
 
 def read_data() -> pd.DataFrame:
     """
-    Read the data
+    Read the covid data
     """
 
     df = pd.read_feather("../data/2021-2022-all-covid-data-through-2022-02-20.feather")
+    df["date"] = pd.to_datetime(
+        df["date"]
+    )  # negating some of the speed benefit of feather
+    df.set_index("date", inplace=True)  # maybe better to just use parque
     return df
 
 
 def read_counties() -> dict:
     """
-    Read the counties information into a dictionary
+    Read the counties information into a dictionary for quick loading and user input
 
     """
 
@@ -32,7 +36,7 @@ counties = read_counties()
 # We could probably get faster lookups if we make the fips codes the index
 fips_list = []
 
-# have to wait to show the county until we get teh state
+# have to wait to show the county until we get the state
 def get_county() -> str:
     """get a state and county from the user with dropdowns"""
     state = st.selectbox(
@@ -40,24 +44,16 @@ def get_county() -> str:
         options=counties.keys(),
     )
 
+    # TODO: look at using session sate with a callback for on change to add the item to the dictionary
 
-    # look at using session sate with a callback for on change to add the item to the dictionary
-
+    # on state change, show the counties
     if state:
+        county = st.selectbox("Choose a County", options=counties[state])
 
-    county = st.selectbox("Choose a County", options=counties[state])
-
-    try:
-        fips_row = data.loc[
-            data[("state" == state) & ("county" == county)]
-        ]  # switch to query later
-
-        return fips_row["fips"]
-    except Exception:
-        # lot the exception and return a nice error message
+        return data.loc[(data["state"] == state) & (data["county"] == county)]
 
 
-fips_list.append(# the fips values in the state dictionary)
+# fips_list.append(# the fips values in the state dictionary)
 
 
 # use a checkbox to ask if want to add another option
@@ -66,7 +62,12 @@ fips_list.append(# the fips values in the state dictionary)
 # but then have to lookup each of those rows, but need to do that anyway to get covid data
 # going wtih get the fips
 
-filtered_df = data[data["fips"] == fips]
-filtered_df
+# filtered_df = data[data["fips"] == fips]
+# filtered_df
 
-px.line(data, x=filtered_df.index, y="cases_avg_per_100k", color="county")
+filtered_df = get_county()
+print(filtered_df)
+
+
+fig = px.line(filtered_df, x=filtered_df.index, y="cases_avg_per_100k", color="county")
+fig
