@@ -56,12 +56,12 @@ def build_df(fips_list: list) -> pd.DataFrame:
     return data.loc[data["fips"].isin(fips_list)]
 
 
-st.session_state.concat_df = pd.DataFrame()
-
 fips = get_county()
 filtered_df = build_df(fips)
 
 st.session_state.concat_df = pd.concat([st.session_state.concat_df, filtered_df])
+
+st.session_state.concat_df
 
 fig = px.line(
     data_frame=st.session_state.concat_df,
@@ -72,7 +72,6 @@ fig = px.line(
 )
 fig.update_yaxes(title="")
 fig.update_xaxes(title="")
-fig.update_layout(showlegend=False)
 fig
 
 st.subheader("Choose another State and County combination above to add to the map")
