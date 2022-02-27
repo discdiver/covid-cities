@@ -31,42 +31,48 @@ def read_counties() -> dict:
 data = read_data()
 counties = read_counties()
 
-# the list of fips codes to use as a key.
-# We could probably get faster lookups if we make the fips codes the index
-fips_list = []
 
-# have to wait to show the county until we get the state
 def get_county() -> str:
     """get a state and county from the user with dropdowns"""
+
     state = st.selectbox(
         label="Choose a State",
         options=counties.keys(),
+        index=5,
     )
 
-    # TODO: look at using session sate with a callback for on change to add the item to the dictionary
+    county = st.selectbox(
+        "Choose a County",
+        options=counties[state],
+        index=min(len(counties[state]) - 1, 18),
+    )
 
-    # on state change, show the counties
-    if state:
-        county = st.selectbox("Choose a County", options=counties[state])
-
-        return data.loc[(data["state"] == state) & (data["county"] == county)]
-
-
-# fips_list.append(# the fips values in the state dictionary)
+    return data.loc[(data["state"] == state) & (data["county"] == county), "fips"]
 
 
-# use a checkbox to ask if want to add another option
-# make a list of dictionaries to store state, county pairs
-# or maybe just fips #s a single filter should be faster,
-# but then have to lookup each of those rows, but need to do that anyway to get covid data
-# going wtih get the fips
+def build_df(fips_list: list) -> pd.DataFrame:
+    """filter df to selected rows' fips codes"""
 
-# filtered_df = data[data["fips"] == fips]
-# filtered_df
-
-filtered_df = get_county()
-print(filtered_df)
+    return data.loc[data["fips"].isin(fips_list)]
 
 
-fig = px.line(filtered_df, x=filtered_df.index, y="cases_avg_per_100k", color="county")
+st.session_state.concat_df = pd.DataFrame()
+
+fips = get_county()
+filtered_df = build_df(fips)
+
+st.session_state.concat_df = pd.concat([st.session_state.concat_df, filtered_df])
+
+fig = px.line(
+    data_frame=st.session_state.concat_df,
+    x=st.session_state.concat_df.index,
+    y="cases_avg_per_100k",
+    color="county",
+    title="Average cases per 100k, 7-day rolling average",
+)
+fig.update_yaxes(title="")
+fig.update_xaxes(title="")
+fig.update_layout(showlegend=False)
 fig
+
+st.subheader("Choose another State and County combination above to add to the map")
