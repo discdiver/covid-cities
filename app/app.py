@@ -4,19 +4,18 @@ import json
 import plotly.express as px
 
 
+@st.cache()
 def read_data() -> pd.DataFrame:
     """
     Read the covid data
     """
 
-    df = pd.read_feather("../data/2021-2022-all-covid-data-through-2022-02-20.feather")
-    df["date"] = pd.to_datetime(
-        df["date"]
-    )  # negating some of the speed benefit of feather
-    df.set_index("date", inplace=True)  # maybe better to just use parque
+    df = pd.read_parquet("../data/2021-2022-all-covid-data-through-2022-02-20.parquet")
+    df.index = pd.to_datetime(df.index)
     return df
 
 
+@st.cache()
 def read_counties() -> dict:
     """
     Read the counties information into a dictionary for quick loading and user input
