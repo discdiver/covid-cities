@@ -32,40 +32,48 @@ data = read_data()
 counties = read_counties()
 
 
-def get_county() -> str:
-    """get a state and county from the user with dropdowns"""
-
-    state = st.selectbox(
-        label="Choose a State",
-        options=counties.keys(),
-        index=5,
-    )
-
-    county = st.selectbox(
-        "Choose a County",
-        options=counties[state],
-        index=min(len(counties[state]) - 1, 18),
-    )
-
-    return data.loc[(data["state"] == state) & (data["county"] == county), "fips"]
+choose_state = st.selectbox(
+    label="Choose a State",
+    options=counties.keys(),
+    index=5,
+)
 
 
-def build_df(fips_list: list) -> pd.DataFrame:
-    """filter df to selected rows' fips codes"""
+county_key = st.selectbox(
+    "Choose a County",
+    options=counties[choose_state],
+    index=min(len(counties[choose_state]) - 1, 18),
+)
+st.session_state[f"{choose_state}-{county_key}"] = True
 
-    return data.loc[data["fips"].isin(fips_list)]
+
+def get_county(state) -> str:
+    """filter to state and county to plot"""
+
+    # make a dictionary of key, value pairs from session state
+    state_county_choices = {
+        k.split("-")[0]: k.split("-")[1]
+        for k, v in st.session_state.items()
+        if v == True
+    }
+
+    # build the dataframe
+    df = pd.DataFrame()
+
+    for state, county in state_county_choices.items():
+        df = pd.concat(
+            [df, data.loc[(data["state"] == state) & (data["county"] == county)]]
+        )
+    return df
 
 
-fips = get_county()
-filtered_df = build_df(fips)
+filtered_df = get_county(choose_state)  # get county from user
 
-st.session_state.concat_df = pd.concat([st.session_state.concat_df, filtered_df])
-
-st.session_state.concat_df
+print(filtered_df)
 
 fig = px.line(
-    data_frame=st.session_state.concat_df,
-    x=st.session_state.concat_df.index,
+    data_frame=filtered_df,
+    x=filtered_df.index,
     y="cases_avg_per_100k",
     color="county",
     title="Average cases per 100k, 7-day rolling average",
