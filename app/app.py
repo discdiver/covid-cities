@@ -66,7 +66,10 @@ def get_county(state) -> str:
     # build the dataframe
     df = pd.DataFrame()
 
-    #  somehow get rid of strange plot line that happens on duplicates, drop duplicates doesn't work
+    # TODO get rid of strange plot line that happens on duplicates
+    # if key value pair already added to session_state
+    # if so, don't add, maybe just put a message "already showing - state, county
+    # drop duplicates doesn't work
 
     if "county_list" in st.session_state:
         for state, county in st.session_state["county_list"]:
@@ -84,12 +87,21 @@ def clear_plot():
     st.session_state = {}
 
 
-filtered_df = get_county(choose_state)  # get county from user
+# get county from user
+filtered_df = get_county(choose_state)
+
+# get start month and year for plot - doesn't do date
+start_date = st.date_input(
+    "Start date to show",
+)
+
+start_date = pd.to_datetime(start_date).to_period("M")
+filtered_df = filtered_df.loc[str(start_date) :]
+
 try:
     if "county_list" in st.session_state:
 
-        # dates = st.date_input(label=(2019, 2020), min_value=2019)
-
+        st.write(start_date)
         # make the plot
         fig = px.line(
             data_frame=filtered_df,
