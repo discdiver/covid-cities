@@ -88,6 +88,8 @@ filtered_df = get_county(choose_state)  # get county from user
 try:
     if "county_list" in st.session_state:
 
+        # dates = st.date_input(label=(2019, 2020), min_value=2019)
+
         # make the plot
         fig = px.line(
             data_frame=filtered_df,
@@ -100,15 +102,17 @@ try:
         fig.update_xaxes(title="")
 
         # TODO update legend and tooltip to have state in addition to city
-        fig
+        st.plotly_chart(fig)
 
-        st.button("Clear plot?", on_click=clear_plot)
 
-        st.subheader(
-            "Choose another State and County combination above to add to the map"
-        )
 except:
     pass
+
+if "county_list" in st.session_state:
+
+    st.button("Clear plot?", on_click=clear_plot)
+
+    st.subheader("Choose another State and County combination above to add to the map")
 
 
 # add functionality to login and store favorites
