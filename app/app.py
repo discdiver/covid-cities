@@ -44,42 +44,56 @@ county_key = st.selectbox(
     options=counties[choose_state],
     index=min(len(counties[choose_state]) - 1, 18),
 )
-st.session_state[f"{choose_state}-{county_key}"] = True
+
+# list of state, county tuples to display
+if not st.session_state["county_list"]:
+    st.session_state["county_list"] = []
+
+
+if st.checkbox("Add to plot?"):
+    st.session_state["county_list"].append((choose_state, county_key))
+
+    st.session_state
 
 
 def get_county(state) -> str:
     """filter to state and county to plot"""
 
-    # make a dictionary of key, value pairs from session state
-    state_county_choices = {
-        k.split("-")[0]: k.split("-")[1]
-        for k, v in st.session_state.items()
-        if v == True
-    }
-
     # build the dataframe
     df = pd.DataFrame()
 
-    for state, county in state_county_choices.items():
-        df = pd.concat(
-            [df, data.loc[(data["state"] == state) & (data["county"] == county)]]
-        )
-    return df
+    if st.session_state["county_list"]:
+
+        for state, county in st.session_state["county_list"]:
+            df = pd.concat(
+                [df, data.loc[(data["state"] == state) & (data["county"] == county)]]
+            )
+        return df
 
 
 filtered_df = get_county(choose_state)  # get county from user
 
-print(filtered_df)
+if st.session_state["county_list"]:
 
-fig = px.line(
-    data_frame=filtered_df,
-    x=filtered_df.index,
-    y="cases_avg_per_100k",
-    color="county",
-    title="Average cases per 100k, 7-day rolling average",
-)
-fig.update_yaxes(title="")
-fig.update_xaxes(title="")
-fig
+    fig = px.line(
+        data_frame=filtered_df,
+        x=filtered_df.index,
+        y="cases_avg_per_100k",
+        color="county",
+        title="Average cases per 100k, 7-day rolling average",
+    )
+    fig.update_yaxes(title="")
+    fig.update_xaxes(title="")
+    fig
 
-st.subheader("Choose another State and County combination above to add to the map")
+    st.subheader("Choose another State and County combination above to add to the map")
+
+
+# add if press button, clear session.state
+st.session_state
+
+# def clear_plot():
+#     st.session_state['']
+
+# if fig:
+#     st.button('Clear plot?')
