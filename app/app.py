@@ -52,8 +52,12 @@ county_key = st.selectbox(
 if "county_list" not in st.session_state:
     st.session_state["county_list"] = []
 
-if st.checkbox("Add to plot?"):  # TODO uncheck after adding a county
+
+def add_state_and_county_to_session_state():
     st.session_state["county_list"].append((choose_state, county_key))
+
+
+st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
 
 def get_county(state) -> str:
@@ -62,7 +66,7 @@ def get_county(state) -> str:
     # build the dataframe
     df = pd.DataFrame()
 
-    # don't do duplicate rows - drop duplicates doesn't work, somehow get rid of strange plot line
+    #  somehow get rid of strange plot line that happens on duplicates, drop duplicates doesn't work
 
     if "county_list" in st.session_state:
         for state, county in st.session_state["county_list"]:
@@ -73,6 +77,11 @@ def get_county(state) -> str:
                 ]
             )
         return df
+
+
+def clear_plot():
+    """clear session state"""
+    st.session_state = {}
 
 
 filtered_df = get_county(choose_state)  # get county from user
@@ -93,17 +102,13 @@ try:
         # TODO update legend and tooltip to have state in addition to city
         fig
 
+        st.button("Clear plot?", on_click=clear_plot)
+
         st.subheader(
             "Choose another State and County combination above to add to the map"
         )
 except:
     pass
 
-# 
-def clear_plot():
-    """clear session state"""
-    st.session_state = {}
 
-
-if fig:
-    st.button("Clear plot?", on_click=clear_plot)
+# add functionality to login and store favorites
