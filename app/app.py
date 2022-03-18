@@ -10,6 +10,9 @@ def read_data() -> pd.DataFrame:
     Read the covid data
     """
 
+    ## TODO try to read today's data
+    # if that dowsn't work, go back one day earlier until find ti
+
     df = pd.read_parquet("../data/2021-2022-all-covid-data-through-2022-02-20.parquet")
     df.index = pd.to_datetime(df.index)
     return df
@@ -19,7 +22,6 @@ def read_data() -> pd.DataFrame:
 def read_counties() -> dict:
     """
     Read the counties information into a dictionary for quick loading and user input
-
     """
 
     with open("../data/state_counties.json", "r") as f:
@@ -45,15 +47,13 @@ county_key = st.selectbox(
     index=min(len(counties[choose_state]) - 1, 18),
 )
 
-# list of state, county tuples to display
-if not st.session_state["county_list"]:
+# add state, county tuples to list for plotting
+
+if "county_list" not in st.session_state:
     st.session_state["county_list"] = []
 
-
-if st.checkbox("Add to plot?"):
+if st.checkbox("Add to plot?"):  # TODO uncheck after adding a county
     st.session_state["county_list"].append((choose_state, county_key))
-
-    st.session_state
 
 
 def get_county(state) -> str:
@@ -62,38 +62,48 @@ def get_county(state) -> str:
     # build the dataframe
     df = pd.DataFrame()
 
-    if st.session_state["county_list"]:
+    # don't do duplicate rows - drop duplicates doesn't work, somehow get rid of strange plot line
 
+    if "county_list" in st.session_state:
         for state, county in st.session_state["county_list"]:
             df = pd.concat(
-                [df, data.loc[(data["state"] == state) & (data["county"] == county)]]
+                [
+                    df,
+                    data.loc[(data["state"] == state) & (data["county"] == county)],
+                ]
             )
         return df
 
 
 filtered_df = get_county(choose_state)  # get county from user
+try:
+    if "county_list" in st.session_state:
 
-if st.session_state["county_list"]:
+        # make the plot
+        fig = px.line(
+            data_frame=filtered_df,
+            x=filtered_df.index,
+            y="cases_avg_per_100k",
+            color="county",
+            title="Average cases per 100k, 7-day rolling average",
+        )
+        fig.update_yaxes(title="")
+        fig.update_xaxes(title="")
 
-    fig = px.line(
-        data_frame=filtered_df,
-        x=filtered_df.index,
-        y="cases_avg_per_100k",
-        color="county",
-        title="Average cases per 100k, 7-day rolling average",
-    )
-    fig.update_yaxes(title="")
-    fig.update_xaxes(title="")
-    fig
+        # TODO update legend and tooltip to have state in addition to city
+        fig
 
-    st.subheader("Choose another State and County combination above to add to the map")
+        st.subheader(
+            "Choose another State and County combination above to add to the map"
+        )
+except:
+    pass
+
+# 
+def clear_plot():
+    """clear session state"""
+    st.session_state = {}
 
 
-# add if press button, clear session.state
-st.session_state
-
-# def clear_plot():
-#     st.session_state['']
-
-# if fig:
-#     st.button('Clear plot?')
+if fig:
+    st.button("Clear plot?", on_click=clear_plot)
