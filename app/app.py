@@ -34,20 +34,17 @@ def read_counties() -> dict:
 data = read_data()
 counties = read_counties()
 
-
 choose_state = st.selectbox(
     label="Choose a State",
     options=counties.keys(),
     index=5,
 )
 
-
 county_key = st.selectbox(
     "Choose a County",
     options=counties[choose_state],
     index=min(len(counties[choose_state]) - 1, 18),
 )
-
 
 if "county_list" not in st.session_state:
     st.session_state["county_list"] = []
@@ -64,7 +61,7 @@ st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
 
 def get_county(state: str):
-    """return filtered data frame to state and county to plot
+    """filter data frame to state and county pairs to plot
 
     Args:
         state: the US state or territory"""
@@ -82,28 +79,26 @@ def get_county(state: str):
         return df
 
 
-def clear_plot():
-    """clear session state"""
-    st.session_state = {}
-
-
 # get county from user
 filtered_df = get_county(choose_state)
 
-
-# get the starting dates
+# get the starting date
+# TODO change max_value to most recent file
 start_date = st.date_input(
-    "Start date to show", min_value=date(2019, 2, 24), max_value=date.today()
+    "Start date",
+    value=date(2021, 6, 1),
+    min_value=date(2019, 2, 24),
+    max_value=date.today(),
 )
 
 start_date = pd.to_datetime(start_date).to_period("D")
 filtered_df = filtered_df.loc[str(start_date) :]
 
+# maybe add end date
+
+# make the plot
 try:
     if "county_list" in st.session_state:
-
-        st.write(start_date)
-        # make the plot
         fig = px.line(
             data_frame=filtered_df,
             x=filtered_df.index,
@@ -120,9 +115,15 @@ try:
 except:
     pass
 
-if "county_list" in st.session_state:
-    st.button("Clear plot?", on_click=clear_plot)
 
+def clear_plot():
+    """clear session state"""
+    st.session_state = {}
+
+
+# display button to clear plot and suggestion to pick more counties if plot exists
+if st.session_state["county_list"]:
+    st.button("Clear plot?", on_click=clear_plot)
     st.subheader("Choose another State and County combination above to add to the map")
 
 
