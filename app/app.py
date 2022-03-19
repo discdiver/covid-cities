@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
+from datetime import date
 
 
 @st.cache()
@@ -11,7 +12,7 @@ def read_data() -> pd.DataFrame:
     """
 
     ## TODO try to read today's data
-    # if that dowsn't work, go back one day earlier until find ti
+    # if that dowsn't work, go back one day earlier until find working date
 
     df = pd.read_parquet("../data/2021-2022-all-covid-data-through-2022-02-20.parquet")
     df.index = pd.to_datetime(df.index)
@@ -47,13 +48,14 @@ county_key = st.selectbox(
     index=min(len(counties[choose_state]) - 1, 18),
 )
 
-# add state, county tuples to list for plotting
 
 if "county_list" not in st.session_state:
     st.session_state["county_list"] = []
 
 
 def add_state_and_county_to_session_state():
+    """Add new state, country to session state"""
+
     if (choose_state, county_key) not in st.session_state["county_list"]:
         st.session_state["county_list"].append((choose_state, county_key))
 
@@ -62,7 +64,7 @@ st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
 
 def get_county(state: str):
-    """filter to state and county to plot
+    """return filtered data frame to state and county to plot
 
     Args:
         state: the US state or territory"""
@@ -88,12 +90,13 @@ def clear_plot():
 # get county from user
 filtered_df = get_county(choose_state)
 
-# get start month and year for plot - doesn't do date
+
+# get the starting dates
 start_date = st.date_input(
-    "Start date to show",
+    "Start date to show", min_value=date(2019, 2, 24), max_value=date.today()
 )
 
-start_date = pd.to_datetime(start_date).to_period("M")
+start_date = pd.to_datetime(start_date).to_period("D")
 filtered_df = filtered_df.loc[str(start_date) :]
 
 try:
@@ -114,12 +117,10 @@ try:
         # TODO update legend and tooltip to have state in addition to city
         st.plotly_chart(fig)
 
-
 except:
     pass
 
 if "county_list" in st.session_state:
-
     st.button("Clear plot?", on_click=clear_plot)
 
     st.subheader("Choose another State and County combination above to add to the map")
