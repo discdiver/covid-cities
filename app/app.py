@@ -54,22 +54,20 @@ if "county_list" not in st.session_state:
 
 
 def add_state_and_county_to_session_state():
-    st.session_state["county_list"].append((choose_state, county_key))
+    if (choose_state, county_key) not in st.session_state["county_list"]:
+        st.session_state["county_list"].append((choose_state, county_key))
 
 
 st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
 
-def get_county(state) -> str:
-    """filter to state and county to plot"""
+def get_county(state: str):
+    """filter to state and county to plot
 
-    # build the dataframe
+    Args:
+        state: the US state or territory"""
+
     df = pd.DataFrame()
-
-    # TODO get rid of strange plot line that happens on duplicates
-    # if key value pair already added to session_state
-    # if so, don't add, maybe just put a message "already showing - state, county
-    # drop duplicates doesn't work
 
     if "county_list" in st.session_state:
         for state, county in st.session_state["county_list"]:
