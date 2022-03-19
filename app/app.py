@@ -2,19 +2,41 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
-from datetime import date
+from datetime import date, timedelta
+from pathlib import Path
+
+
+@st.cache()
+def get_most_recent_data():
+    """get the date from most recent covid data file"""
+    path = Path("../data")
+
+    date_to_check = date.today()
+    print(str(date_to_check))
+
+    # TODO organize into files by month when read in data
+
+    # only look back a few days, if not found, something is messed up
+    for _ in range(10):
+        for file in path.rglob("*.parquet"):
+            if str(date_to_check) in str(file):
+                return str(file)
+
+        date_to_check = date_to_check - timedelta(days=1)
+    return "../data/2020-2022-all-covid-data-through-2022-03-18.parquet"  
+    
+    # should I archive old files and just grab the most recent from nyt, not write out toa file?
 
 
 @st.cache()
 def read_data() -> pd.DataFrame:
     """
-    Read the covid data
+    Read the most recent covid data into the app
     """
+    # data_path = get_most_recent_data()
+    data_path = 
 
-    ## TODO try to read today's data
-    # if that dowsn't work, go back one day earlier until find working date
-
-    df = pd.read_parquet("../data/2021-2022-all-covid-data-through-2022-02-20.parquet")
+    df = pd.read_parquet(data_path)
     df.index = pd.to_datetime(df.index)
     return df
 
