@@ -5,6 +5,9 @@ import plotly.express as px
 from datetime import date, timedelta
 from pathlib import Path
 
+st.title("COVID-19 Case data")
+st.subheader("See COVID prevalence in the places you care about 🙂")
+
 
 @st.cache()
 def get_most_recent_data():
@@ -14,8 +17,6 @@ def get_most_recent_data():
     date_to_check = date.today()
     print(str(date_to_check))
 
-    # TODO organize into files by month when read in data
-
     # only look back a few days, if not found, something is messed up
     for _ in range(10):
         for file in path.rglob("*.parquet"):
@@ -23,9 +24,9 @@ def get_most_recent_data():
                 return str(file)
 
         date_to_check = date_to_check - timedelta(days=1)
-    return "../data/2020-2022-all-covid-data-through-2022-03-18.parquet"  
-    
-    # should I archive old files and just grab the most recent from nyt, not write out toa file?
+    return "../data/2020-2022-all-covid-data-through-2022-03-18.parquet"
+
+    # every day, script runs to make a parquet file from NYT data
 
 
 @st.cache()
@@ -33,8 +34,7 @@ def read_data() -> pd.DataFrame:
     """
     Read the most recent covid data into the app
     """
-    # data_path = get_most_recent_data()
-    data_path = 
+    data_path = get_most_recent_data()
 
     df = pd.read_parquet(data_path)
     df.index = pd.to_datetime(df.index)
@@ -131,10 +131,23 @@ try:
         fig.update_yaxes(title="")
         fig.update_xaxes(title="")
 
-        # TODO update legend and tooltip to have state in addition to city
+        fig.update_layout(
+            legend_title_text="County (some cities)",
+            hoverlabel=dict(font_size=16, font_family="Rockwell"),
+        )
+
+        # TODO update legend to maybe have state
+        # just make new df column when build parquet file
+        # add tooltip to have state in addition to city
         st.plotly_chart(fig)
 
-except:
+        most_recent_date = str(filtered_df.index.max())[:11]
+
+        st.write(filtered_df.query("index==@most_recent_date")["cases_avg"])
+
+
+except Exception as e:
+    print(e)
     pass
 
 
@@ -145,8 +158,17 @@ def clear_plot():
 
 # display button to clear plot and suggestion to pick more counties if plot exists
 if st.session_state["county_list"]:
-    st.button("Clear plot?", on_click=clear_plot)
+
     st.subheader("Choose another State and County combination above to add to the map")
+    st.button("Clear plot?", on_click=clear_plot)
+    st.write(
+        "App source: [Jeff Hale's GitHub Repository](https://github.com/discdiver/covid-cities) |  \
+         Data source: [New York Times](https://github.com/nytimes/covid-19-data/tree/master/rolling-averages) "
+    )
+    st.write(
+        "Note: data is subject to test availability and local reporting. \
+    The New York Times chose to report some data by county and some by city."
+    )
 
 
-# add functionality to login and store favorites
+# TODO add functionality to login and store favorites
