@@ -4,6 +4,7 @@ import json
 import plotly.express as px
 from datetime import date, timedelta
 from pathlib import Path
+import humanize
 
 st.title("COVID-19 Case data")
 st.subheader("See COVID prevalence in the places you care about 🙂")
@@ -21,7 +22,7 @@ def get_most_recent_data():
     for _ in range(10):
         for file in path.rglob("*.parquet"):
             if str(date_to_check) in str(file):
-                return str(file)
+                return str(file), date_to_check
 
         date_to_check = date_to_check - timedelta(days=1)
     return (
@@ -35,7 +36,7 @@ def read_data() -> pd.DataFrame:
     """
     Read the most recent covid data into the app
     """
-    data_path, most_recent_date = get_most_recent_data()
+    (data_path, most_recent_date) = get_most_recent_data()
 
     df = pd.read_parquet(data_path)
     df.index = pd.to_datetime(df.index)
@@ -105,9 +106,9 @@ def get_county(state: str):
 
 filtered_df = get_county(choose_state)
 
-# get the starting date
-# TODO change max_value to most recent file
+filtered_df.tail(10)
 
+# get the starting date
 start_date = st.date_input(
     "Start date",
     value=date(2021, 6, 1),
@@ -129,15 +130,16 @@ try:
         filtered_df.rename(
             columns={
                 "date": "Date",
-                "cases_avg": "Cases per 100,000, 7-day rolling average",
-            }
+                "cases_avg_per_100k": "Cases per 100,000, 7-day rolling average",
+            },
+            inplace=True,
         )
 
         # plot
         fig = px.line(
             data_frame=filtered_df,
             x=filtered_df.index,
-            y="cases_avg_per_100k",
+            y="Cases per 100,000, 7-day rolling average",
             color="Location",
             title="Cases per 100,000 population, 7-day rolling average",
         )
@@ -154,10 +156,20 @@ try:
         # make table (could make a bar plot)
         most_recent_date = str(filtered_df.index.max())[:11]
         most_recent_cases = filtered_df.query("index==@most_recent_date")[
-            ["Location", "cases_avg"]
+            ["Location", "Cases per 100,000, 7-day rolling average"]
         ]
+        most_recent_cases[
+            "Cases per 100,000, 7-day rolling average"
+        ] = most_recent_cases["Cases per 100,000, 7-day rolling average"].round(1)
+
         most_recent_cases.index = most_recent_cases.index.date
-        st.write(most_recent_cases)
+        st.table(
+            most_recent_cases.sort_values(
+                by="Cases per 100,000, 7-day rolling average", ascending=False
+            ).style.format({"Cases per 100,000, 7-day rolling average": "{:,.2f}"})
+        )
+
+        # could add % change since last week
 
 
 except Exception as e:
