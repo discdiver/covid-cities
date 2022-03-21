@@ -39,6 +39,7 @@ def write_data(df: pd.DataFrame):
 def build():
     """fetch, concat and write the most recent covid data"""
     df = read_data(2020, 2022)
+    # df["State, County/(City)"]
     write_data(df)
 
 

@@ -121,29 +121,41 @@ filtered_df = filtered_df.loc[str(start_date) :]
 # make the plot
 try:
     if "county_list" in st.session_state:
+
+        filtered_df["Location"] = filtered_df["county"] + ", " + filtered_df["state"]
+        filtered_df.rename(
+            columns={
+                "date": "Date",
+                "cases_avg": "Cases per 100,000, 7-day rolling average",
+            }
+        )
         fig = px.line(
             data_frame=filtered_df,
             x=filtered_df.index,
             y="cases_avg_per_100k",
-            color="county",
-            title="Average cases per 100k, 7-day rolling average",
+            color="Location",
+            title="Cases per 100,000 population, 7-day rolling average",
         )
         fig.update_yaxes(title="")
         fig.update_xaxes(title="")
 
         fig.update_layout(
-            legend_title_text="County (some cities)",
+            legend_title_text="Location",
             hoverlabel=dict(font_size=16, font_family="Rockwell"),
         )
 
-        # TODO update legend to maybe have state
+        # TODO
         # just make new df column when build parquet file
         # add tooltip to have state in addition to city
         st.plotly_chart(fig)
 
         most_recent_date = str(filtered_df.index.max())[:11]
-
-        st.write(filtered_df.query("index==@most_recent_date")["cases_avg"])
+        most_recent_cases = filtered_df.query("index==@most_recent_date")[
+            ["Location", "cases_avg"]
+        ]
+        # most_recent_cases.rename(columns=["County", "Cases per 100k"], inplace=True)
+        most_recent_cases.index = most_recent_cases.index.date
+        st.write(most_recent_cases)
 
 
 except Exception as e:
