@@ -24,9 +24,10 @@ def get_most_recent_data():
                 return str(file)
 
         date_to_check = date_to_check - timedelta(days=1)
-    return "../data/2020-2022-all-covid-data-through-2022-03-18.parquet"
-
-    # every day, script runs to make a parquet file from NYT data
+    return (
+        "../data/2020-2022-all-covid-data-through-2022-03-18.parquet",
+        date_to_check,
+    )
 
 
 @st.cache()
@@ -34,11 +35,11 @@ def read_data() -> pd.DataFrame:
     """
     Read the most recent covid data into the app
     """
-    data_path = get_most_recent_data()
+    data_path, most_recent_date = get_most_recent_data()
 
     df = pd.read_parquet(data_path)
     df.index = pd.to_datetime(df.index)
-    return df
+    return df, most_recent_date
 
 
 @st.cache()
@@ -53,9 +54,10 @@ def read_counties() -> dict:
     return counties_dict
 
 
-data = read_data()
+data, most_recent_date = read_data()
 counties = read_counties()
 
+# get user input and store in session state so can add multiple locations
 choose_state = st.selectbox(
     label="Choose a State",
     options=counties.keys(),
@@ -101,16 +103,16 @@ def get_county(state: str):
         return df
 
 
-# get county from user
 filtered_df = get_county(choose_state)
 
 # get the starting date
 # TODO change max_value to most recent file
+
 start_date = st.date_input(
     "Start date",
     value=date(2021, 6, 1),
     min_value=date(2019, 2, 24),
-    max_value=date.today(),
+    max_value=most_recent_date,  # found when check for most recent file
 )
 
 start_date = pd.to_datetime(start_date).to_period("D")
@@ -118,10 +120,11 @@ filtered_df = filtered_df.loc[str(start_date) :]
 
 # maybe add end date
 
-# make the plot
+
 try:
     if "county_list" in st.session_state:
 
+        # clean up column names
         filtered_df["Location"] = filtered_df["county"] + ", " + filtered_df["state"]
         filtered_df.rename(
             columns={
@@ -129,6 +132,8 @@ try:
                 "cases_avg": "Cases per 100,000, 7-day rolling average",
             }
         )
+
+        # plot
         fig = px.line(
             data_frame=filtered_df,
             x=filtered_df.index,
@@ -144,16 +149,13 @@ try:
             hoverlabel=dict(font_size=16, font_family="Rockwell"),
         )
 
-        # TODO
-        # just make new df column when build parquet file
-        # add tooltip to have state in addition to city
         st.plotly_chart(fig)
 
+        # make table (could make a bar plot)
         most_recent_date = str(filtered_df.index.max())[:11]
         most_recent_cases = filtered_df.query("index==@most_recent_date")[
             ["Location", "cases_avg"]
         ]
-        # most_recent_cases.rename(columns=["County", "Cases per 100k"], inplace=True)
         most_recent_cases.index = most_recent_cases.index.date
         st.write(most_recent_cases)
 
@@ -183,4 +185,4 @@ if st.session_state["county_list"]:
     )
 
 
-# TODO add functionality to login and store favorites
+# TODO add functionality to create user account to login and store favorites
