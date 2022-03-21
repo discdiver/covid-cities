@@ -16,7 +16,6 @@ def get_most_recent_data():
     path = Path("../data")
 
     date_to_check = date.today()
-    print(str(date_to_check))
 
     # only look back a few days, if not found, something is messed up
     for _ in range(10):
@@ -119,8 +118,6 @@ start_date = st.date_input(
 start_date = pd.to_datetime(start_date).to_period("D")
 filtered_df = filtered_df.loc[str(start_date) :]
 
-# maybe add end date
-
 
 try:
     if "county_list" in st.session_state:
@@ -146,23 +143,32 @@ try:
         fig.update_yaxes(title="")
         fig.update_xaxes(title="")
 
-        fig.update_layout(
-            legend_title_text="Location",
-            hoverlabel=dict(font_size=16, font_family="Rockwell"),
-        )
+        fig.update_layout(legend_title_text="Location", hovermode="x")
 
         st.plotly_chart(fig)
 
-        # make table (could make a bar plot)
+        # make table
+        st.subheader(
+            f"Data for {humanize.naturalday(most_recent_date)}, ({most_recent_date})"
+        )
+
+        # CSS to inject contained in a string - hide index - from streamlit docs
+        hide_table_row_index = """
+                    <style>
+                    tbody th {display:none}
+                    .blank {display:none}
+                    </style>
+                    """
+
+        # Inject CSS with Markdown
+        st.markdown(hide_table_row_index, unsafe_allow_html=True)
+
+        # filter to most recent date
         most_recent_date = str(filtered_df.index.max())[:11]
         most_recent_cases = filtered_df.query("index==@most_recent_date")[
             ["Location", "Cases per 100,000, 7-day rolling average"]
         ]
-        most_recent_cases[
-            "Cases per 100,000, 7-day rolling average"
-        ] = most_recent_cases["Cases per 100,000, 7-day rolling average"].round(1)
 
-        most_recent_cases.index = most_recent_cases.index.date
         st.table(
             most_recent_cases.sort_values(
                 by="Cases per 100,000, 7-day rolling average", ascending=False
@@ -185,8 +191,12 @@ def clear_plot():
 # display button to clear plot and suggestion to pick more counties if plot exists
 if st.session_state["county_list"]:
 
-    st.subheader("Choose another State and County combination above to add to the map")
-    st.button("Clear plot?", on_click=clear_plot)
+    st.subheader("Choose another location above to add to the map")
+
+    st.markdown("""---""")
+    # st.button("Start over?", on_click=clear_plot)
+
+    # st.markdown("""---""")
     st.write(
         "App source: [Jeff Hale's GitHub Repository](https://github.com/discdiver/covid-cities) |  \
          Data source: [New York Times](https://github.com/nytimes/covid-19-data/tree/master/rolling-averages) "
