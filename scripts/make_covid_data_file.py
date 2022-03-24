@@ -31,7 +31,7 @@ def write_data(df: pd.DataFrame):
     """
 
     df.to_parquet(
-        f"../data/2020-2022-all-covid-data-through-{df.tail(1).index.values[0]}.parquet"
+        f"./data/2020-2022-all-covid-data-through-{df.tail(1).index.values[0]}.parquet"
     )  # 20mb mar 20222
 
 

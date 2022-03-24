@@ -7,13 +7,13 @@ from pathlib import Path
 import humanize
 
 st.title("COVID-19 Case data")
-st.subheader("See COVID prevalence in the places you care about 🙂")
+st.subheader("See COVID prevalence data for US locations you care about")
 
 
 @st.cache()
 def get_most_recent_data():
     """get the date from most recent covid data file"""
-    path = Path("../data")
+    path = Path("./data")
 
     date_to_check = date.today()
 
@@ -25,7 +25,7 @@ def get_most_recent_data():
 
         date_to_check = date_to_check - timedelta(days=1)
     return (
-        "../data/2020-2022-all-covid-data-through-2022-03-18.parquet",
+        "./data/2020-2022-all-covid-data-through-2022-03-18.parquet",
         date_to_check,
     )
 
@@ -48,7 +48,7 @@ def read_counties() -> dict:
     Read the counties information into a dictionary for quick loading and user input
     """
 
-    with open("../data/state_counties.json", "r") as f:
+    with open("./data/state_counties.json", "r") as f:
         counties_dict = json.load(f)
 
     return counties_dict
@@ -81,6 +81,17 @@ def add_state_and_county_to_session_state():
         st.session_state["county_list"].append((choose_state, county_key))
 
 
+# style button using theme colors
+
+primaryColor = st.get_option("theme.primaryColor")
+
+s = f"""
+<style>
+div.stButton > button:first-child {{ border: 3px solid {primaryColor}; border-radius:20px 20px 20px 20px; }}
+<style>
+"""
+
+st.markdown(s, unsafe_allow_html=True)
 st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
 
@@ -140,16 +151,26 @@ try:
             color="Location",
             title="Cases per 100,000 population, 7-day rolling average",
         )
-        fig.update_yaxes(title="")
+
+        # set axes to 0, round to nearest 100 more
+        y_max = filtered_df["Cases per 100,000, 7-day rolling average"].max()
+
+        y_max -= y_max % -100
+
+        fig.update_yaxes(
+            title="",
+            range=[0, y_max],
+        )
+
         fig.update_xaxes(title="")
 
-        fig.update_layout(legend_title_text="Location", hovermode="x")
+        fig.update_traces(hovertemplate=None)
 
         st.plotly_chart(fig)
 
         # make table
         st.subheader(
-            f"Data for {humanize.naturalday(most_recent_date)}, ({most_recent_date})"
+            f"Data for {humanize.naturalday(most_recent_date)}, {most_recent_date}"
         )
 
         # CSS to inject contained in a string - hide index - from streamlit docs
@@ -191,7 +212,7 @@ def clear_plot():
 # display button to clear plot and suggestion to pick more counties if plot exists
 if st.session_state["county_list"]:
 
-    st.subheader("Choose another location above to add to the map")
+    st.subheader("Add additional locations above to compare! 🙂")
 
     st.markdown("""---""")
     # st.button("Start over?", on_click=clear_plot)
@@ -202,8 +223,8 @@ if st.session_state["county_list"]:
          Data source: [New York Times](https://github.com/nytimes/covid-19-data/tree/master/rolling-averages) "
     )
     st.write(
-        "Note: data is subject to test availability and local reporting. \
-    The New York Times chose to report some data by county and some by city."
+        "Note: data is subject to test availability, individual reporting, and local government reporting. \
+    The New York Times chose to report some data by county and some by city. 🙃"
     )
 
 
