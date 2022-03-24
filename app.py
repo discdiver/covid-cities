@@ -5,9 +5,42 @@ import plotly.express as px
 from datetime import date, timedelta
 from pathlib import Path
 import humanize
+import psycopg2
+from sqlalchemy import create_engine
 
 st.title("COVID-19 Case data")
 st.subheader("See COVID prevalence data for US locations you care about")
+
+
+# Initialize connection.
+# https://docs.streamlit.io/knowledge-base/tutorials/databases/postgresql with fix proposed by Jeff
+
+
+@st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None})
+def init_connection():
+    return psycopg2.connect(
+        **st.secrets.postgres
+    )  # docs incorrect on this line - can unpack only with dot notation
+
+
+conn = init_connection()
+
+
+# Perform query.
+# Uses st.cache to rerun when the query changes or after 10 min if query hasn't changed.
+# could be a long time in some use cases
+@st.cache(ttl=600)
+def run_query(query):
+    with conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()
+
+
+rows = run_query("SELECT * from mytable;")
+
+# Print results.
+for row in rows:
+    st.write(f"{row[0]} has a :{row[1]}:")
 
 
 @st.cache()
