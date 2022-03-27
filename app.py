@@ -16,31 +16,31 @@ st.subheader("See COVID prevalence data for US locations you care about")
 # https://docs.streamlit.io/knowledge-base/tutorials/databases/postgresql with fix proposed by Jeff
 
 
-@st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None})
-def init_connection():
-    return psycopg2.connect(
-        **st.secrets.postgres
-    )  # docs incorrect on this line - can unpack only with dot notation
+# @st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None})
+# def init_connection():
+#     return psycopg2.connect(
+#         **st.secrets.postgres
+#     )  # docs incorrect on this line - can unpack only with dot notation
 
 
-conn = init_connection()
+# conn = init_connection()
 
 
 # Perform query.
 # Uses st.cache to rerun when the query changes or after 10 min if query hasn't changed.
 # could be a long time in some use cases
-@st.cache(ttl=600)
-def run_query(query):
-    with conn.cursor() as cur:
-        cur.execute(query)
-        return cur.fetchall()
+# @st.cache(ttl=600)
+# def run_query(query):
+#     with conn.cursor() as cur:
+#         cur.execute(query)
+#         return cur.fetchall()
 
 
-rows = run_query("SELECT * from mytable;")
+# rows = run_query("SELECT * from mytable;")
 
-# Print results.
-for row in rows:
-    st.write(f"{row[0]} has a :{row[1]}:")
+# # Print results.
+# for row in rows:
+#     st.write(f"{row[0]} has a :{row[1]}:")
 
 
 @st.cache()
@@ -197,13 +197,17 @@ try:
 
         fig.update_xaxes(title="")
 
-        fig.update_traces(hovertemplate=None)
+        fig.update_traces(hovertemplate=
+            "Location: <br>" +
+            "Date: %{x}<br>" +
+            "Cases: %{y}" 
+        )
 
         st.plotly_chart(fig)
 
         # make table
         st.subheader(
-            f"Data for {humanize.naturalday(most_recent_date)}, {most_recent_date}"
+            f"Data for {humanize.naturalday(most_recent_date)} ({most_recent_date})"
         )
 
         # CSS to inject contained in a string - hide index - from streamlit docs
@@ -262,3 +266,6 @@ if st.session_state["county_list"]:
 
 
 # TODO add functionality to create user account to login and store favorites
+# fetch favorites from the db and put them into session state upon login
+# first login with streamlit authenticator
+# then store user login in the db
