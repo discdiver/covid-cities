@@ -183,6 +183,7 @@ try:
             y="Cases per 100,000, 7-day rolling average",
             color="Location",
             title="Cases per 100,000 population, 7-day rolling average",
+            
         )
 
         # set axes to 0, round to nearest 100 more
@@ -198,12 +199,13 @@ try:
         fig.update_xaxes(title="")
 
         fig.update_traces(hovertemplate=
-            "Location: <br>" +
-            "Date: %{x}<br>" +
-            "Cases: %{y}" 
+            "%{y} cases" 
         )
 
+        fig.update_layout(hovermode="x unified")
+
         st.plotly_chart(fig)
+
 
         # make table
         st.subheader(
