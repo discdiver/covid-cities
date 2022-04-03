@@ -91,7 +91,6 @@ s = f"""
 div.stButton > button:first-child {{ border: 3px solid {primaryColor}; border-radius:20px 20px 20px 20px; }}
 <style>
 """
-
 st.markdown(s, unsafe_allow_html=True)
 st.button("Add to plot?", on_click=add_state_and_county_to_session_state)
 
