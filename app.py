@@ -11,32 +11,37 @@ st.title("COVID-19 Case data")
 st.subheader("See COVID prevalence data for US locations you care about")
 
 
-
 @st.cache()
 def get_most_recent_data():
-    """get the date from most recent covid data file"""
+    """get the date from most recent covid data file
+
+    Returns:
+    """
+
     path = Path("./data")
 
     date_to_check = date.today()
 
-    # only look back a few days, if not found, something is messed up
+    # only look back a few days, if not found, something is messed up, return as soon as found
     for _ in range(10):
         for file in path.rglob("*.parquet"):
             if str(date_to_check) in str(file):
                 return str(file), date_to_check
 
         date_to_check = date_to_check - timedelta(days=1)
+    # no recent files found/return an old file
     return (
-        "./data/2020-2022-all-covid-data-through-2022-03-18.parquet",
+        "./data/2020-2022-all-covid-data-through-2022-04-02.parquet",
         date_to_check,
     )
 
 
 @st.cache()
-def read_data() -> pd.DataFrame:
+def read_data():
     """
     Read the most recent covid data into the app
     """
+
     (data_path, most_recent_date) = get_most_recent_data()
 
     df = pd.read_parquet(data_path)
@@ -164,7 +169,7 @@ try:
 
         fig.update_xaxes(title="")
         fig.update_traces(hovertemplate="%{y} cases")
-        fig.update_layout(hovermode="x unified") 
+        fig.update_layout(hovermode="x unified")
         st.plotly_chart(fig)
 
         # make table
@@ -218,11 +223,10 @@ if st.session_state["county_list"]:
 
     # st.markdown("""---""")
     st.write(
-        "App source: [Jeff Hale's GitHub Repository](https://github.com/discdiver/covid-cities) |  \
+        "App source: [Jeff Hale's GitHub Repository](https://github.com/discdiver/covid-cities) |  [County mapping source](https://simplemaps.com/data/us-counties.) |\
          Data source: [New York Times](https://github.com/nytimes/covid-19-data/tree/master/rolling-averages) "
     )
     st.write(
-        "Note: data is subject to test availability, individual reporting, and local government reporting. \
-    The New York Times chose to report some data by county and some by city. 🙃"
+        "Note: data is subject to test availability, individual reporting, and local government reporting - it is highly imperfect. \
+        The New York Times chose to report some data by county and some by city."
     )
-

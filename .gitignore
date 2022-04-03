@@ -1,4 +1,6 @@
-*.xlsx
-data
+data/state_counties.json
+data/uscounties.csv
 .streamlit/secrets.toml
 notebooks
+.DS_Store
+
