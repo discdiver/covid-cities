@@ -6,9 +6,10 @@ from datetime import date, timedelta
 from pathlib import Path
 import humanize
 
+st.set_page_config(page_title="COVID case data", page_icon="📊", layout="wide")
 
 st.title("COVID-19 Cases")
-st.subheader("See COVID prevalence data for US locations you care about")
+st.subheader("See COVID prevalence for US locations you care about")
 
 
 @st.cache()
