@@ -1,6 +1,15 @@
-data/state_counties.json
-data/uscounties.csv
+# secrets stay out
 .streamlit/secrets.toml
-notebooks
+
+# mac file indexing
 .DS_Store
 
+# for experimentation
+notebooks
+
+# not using dvc now
+.dvc
+.dvcignore
+
+# for making plots with lat lon
+data/uscounties.csv
