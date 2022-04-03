@@ -7,7 +7,7 @@ from pathlib import Path
 import humanize
 
 
-st.title("COVID-19 Case data")
+st.title("COVID-19 Cases")
 st.subheader("See COVID prevalence data for US locations you care about")
 
 
