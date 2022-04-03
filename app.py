@@ -5,42 +5,11 @@ import plotly.express as px
 from datetime import date, timedelta
 from pathlib import Path
 import humanize
-import psycopg2
-from sqlalchemy import create_engine
+
 
 st.title("COVID-19 Case data")
 st.subheader("See COVID prevalence data for US locations you care about")
 
-
-# Initialize connection.
-# https://docs.streamlit.io/knowledge-base/tutorials/databases/postgresql with fix proposed by Jeff
-
-
-# @st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None})
-# def init_connection():
-#     return psycopg2.connect(
-#         **st.secrets.postgres
-#     )  # docs incorrect on this line - can unpack only with dot notation
-
-
-# conn = init_connection()
-
-
-# Perform query.
-# Uses st.cache to rerun when the query changes or after 10 min if query hasn't changed.
-# could be a long time in some use cases
-# @st.cache(ttl=600)
-# def run_query(query):
-#     with conn.cursor() as cur:
-#         cur.execute(query)
-#         return cur.fetchall()
-
-
-# rows = run_query("SELECT * from mytable;")
-
-# # Print results.
-# for row in rows:
-#     st.write(f"{row[0]} has a :{row[1]}:")
 
 
 @st.cache()
@@ -115,7 +84,6 @@ def add_state_and_county_to_session_state():
 
 
 # style button using theme colors
-
 primaryColor = st.get_option("theme.primaryColor")
 
 s = f"""
@@ -183,7 +151,6 @@ try:
             y="Cases per 100,000, 7-day rolling average",
             color="Location",
             title="Cases per 100,000 population, 7-day rolling average",
-            
         )
 
         # set axes to 0, round to nearest 100 more
@@ -197,15 +164,9 @@ try:
         )
 
         fig.update_xaxes(title="")
-
-        fig.update_traces(hovertemplate=
-            "%{y} cases" 
-        )
-
-        fig.update_layout(hovermode="x unified")
-
+        fig.update_traces(hovertemplate="%{y} cases")
+        fig.update_layout(hovermode="x unified") 
         st.plotly_chart(fig)
-
 
         # make table
         st.subheader(
@@ -220,7 +181,7 @@ try:
                     </style>
                     """
 
-        # Inject CSS with Markdown
+        # inject CSS with Markdown
         st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
         # filter to most recent date
@@ -266,8 +227,3 @@ if st.session_state["county_list"]:
     The New York Times chose to report some data by county and some by city. 🙃"
     )
 
-
-# TODO add functionality to create user account to login and store favorites
-# fetch favorites from the db and put them into session state upon login
-# first login with streamlit authenticator
-# then store user login in the db
