@@ -1,0 +1,5 @@
+humanize==4.0.0
+pandas==1.4.1
+plotly==5.6.0
+prefect==1.1.0
+streamlit==1.8.0
