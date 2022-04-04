@@ -171,7 +171,7 @@ try:
         fig.update_xaxes(title="")
         fig.update_traces(hovertemplate="%{y} cases")
         fig.update_layout(hovermode="x unified")
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
         # make table
         st.subheader(
