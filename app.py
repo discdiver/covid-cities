@@ -69,13 +69,13 @@ counties = read_counties()
 choose_state = st.selectbox(
     label="Choose a State",
     options=counties.keys(),
-    index=5,
+    index=9,  # default to District of Columbia
 )
 
 county_key = st.selectbox(
     "Choose a County",
     options=counties[choose_state],
-    index=min(len(counties[choose_state]) - 1, 18),
+    index=min(len(counties[choose_state]) - 1, 0),  # default to first county (DC)
 )
 
 if "county_list" not in st.session_state:
@@ -127,7 +127,7 @@ filtered_df.tail(10)
 # get the starting date
 start_date = st.date_input(
     "Start date",
-    value=date(2021, 11, 1),
+    value=date(2022, 3, 1),
     min_value=date(2019, 2, 24),
     max_value=most_recent_date,  # found when check for most recent file
 )
