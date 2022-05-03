@@ -127,7 +127,7 @@ filtered_df.tail(10)
 # get the starting date
 start_date = st.date_input(
     "Start date",
-    value=date(2022, 3, 1),
+    value=date(2022, 1, 1),
     min_value=date(2019, 2, 24),
     max_value=most_recent_date,  # found when check for most recent file
 )
