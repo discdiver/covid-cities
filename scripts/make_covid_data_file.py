@@ -4,6 +4,7 @@ from datetime import timedelta
 from prefect.schedules import IntervalSchedule
 
 
+@task
 def read_data(oldest_year: int = 2020, newest_year: int = 2022):
     """Read in csv files of data from the nytimes and concatenate into a single pandas DataFrame.
 
@@ -23,6 +24,7 @@ def read_data(oldest_year: int = 2020, newest_year: int = 2022):
     return pd.concat(df_dicts.values())
 
 
+@task
 def write_data(df: pd.DataFrame):
     """write out data frame to parquet file
 
@@ -35,20 +37,13 @@ def write_data(df: pd.DataFrame):
     )  # 20mb mar 20222
 
 
-@task
-def build():
-    """fetch, concat and write the most recent covid data"""
-    df = read_data(2020, 2022)
-    # df["State, County/(City)"]
-    write_data(df)
-
-
 # check every 12 hours
 # schedule = IntervalSchedule(interval=timedelta(hours=12))
 
 
 with Flow("build data") as flow:  # schedule=schedule) as flow:
-    build()
+    df = read_data(2020, 2022)
+    write_data(df)
 
 if __name__ == "__main__":
     flow.run()
