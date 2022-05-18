@@ -32,7 +32,7 @@ def get_most_recent_data():
         date_to_check = date_to_check - timedelta(days=1)
     # no recent files found/return an old file
     return (
-        "./data/2020-2022-all-covid-data-through-2022-04-02.parquet",
+        "./data/2020-2022-all-covid-data-through-2022-05-13.parquet",
         date_to_check,
     )
 

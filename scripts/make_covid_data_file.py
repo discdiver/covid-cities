@@ -1,12 +1,18 @@
-import pandas as pd
-from prefect import task, Flow
 from datetime import timedelta
+import pandas as pd
+import prefect
+from prefect import task, Flow
 from prefect.schedules import IntervalSchedule
+from prefect.engine.results import LocalResult
+from prefect.engine.serializers import PandasSerializer
+
+
+logger = prefect.context.get("logger")
 
 
 @task
 def read_data(oldest_year: int = 2020, newest_year: int = 2022):
-    """Read in csv files of data from the nytimes and concatenate into a single pandas DataFrame.
+    """Read in csv files of yearly covid data from the nytimes and concatenate into a single pandas DataFrame.
 
     Args:
       oldest_year: first year of data to use
@@ -20,30 +26,44 @@ def read_data(oldest_year: int = 2020, newest_year: int = 2022):
             f"https://raw.githubusercontent.com/nytimes/covid-19-data/master/rolling-averages/us-counties-{year}.csv",
             index_col="date",
         )
-
+    logger.info("data read in successfully")
     return pd.concat(df_dicts.values())
 
 
-@task
+@task(
+    # result=LocalResult(
+    #      dir="/Users/hale/Dropbox/DS/covidcities/data/"
+)
+# )
 def write_data(df: pd.DataFrame):
     """write out data frame to parquet file
 
     Args:
         df: the concatenated data frame
     """
+    # write_val = PandasSerializer(file_type="parquet")
+    logger = prefect.context.get("writing data function started")
+    # return write_val.serialize(df)
 
     df.to_parquet(
         f"./data/2020-2022-all-covid-data-through-{df.tail(1).index.values[0]}.parquet"
-    )  # 20mb mar 20222
+    )
+    # )
 
 
-# check every 12 hours
-# schedule = IntervalSchedule(interval=timedelta(hours=12))
-
-
-with Flow("build data") as flow:  # schedule=schedule) as flow:
+with Flow("build data") as flow:
     df = read_data(2020, 2022)
-    write_data(df)
+    output = write_data(df)
+
+# check if flow is serializable, passes if True
+# from prefect.utilities.debug import is_serializable
+
+# is_serializable(flow)
 
 if __name__ == "__main__":
-    flow.run()
+    state = flow.run()
+
+# runs fine locally when called manually
+# now trying on cloud, rereregistered flow
+# may need to specify result location and type to run on cloud? but then need to deserialize when read in data later?
+# will need a path relative to home directory perhaps
