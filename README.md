@@ -1,5 +1,7 @@
 # Easily see COVID case data for desired US counties (sometimes cities)
 
+## Note: This data has not been updated since the New York Times stopped reporting it in 2022
+
 Use the interactive app [here](https://share.streamlit.io/discdiver/covid-cities/main/app.py).
 
 ![Demo gif of using the app](./assets/images/covid-app-demo.gif)
