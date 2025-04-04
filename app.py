@@ -177,7 +177,7 @@ try:
 
         # make table
         st.subheader(
-            f"Data for {humanize.naturalday(most_recent_date)} ({most_recent_date})"
+            f"Data for most recent date"  # {humanize.naturalday(most_recent_date)} ({most_recent_date})"
         )
 
         # CSS to inject contained in a string - hide index - from streamlit docs
