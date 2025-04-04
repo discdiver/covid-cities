@@ -10,8 +10,7 @@ st.set_page_config(page_title="COVID case data", page_icon="📉", layout="wide"
 
 st.title("COVID-19 Cases")
 st.subheader(
-    "See COVID prevalence for US locations you care about."
-    " Note: This data has not been updated since the New York Times stopped reporting it in 2022"
+    " Note: This data has not been updated since the New York Times stopped reporting it in 2022."
 )
 
 
