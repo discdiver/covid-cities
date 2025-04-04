@@ -9,10 +9,13 @@ import humanize
 st.set_page_config(page_title="COVID case data", page_icon="📉", layout="wide")
 
 st.title("COVID-19 Cases")
-st.subheader("See COVID prevalence for US locations you care about")
+st.subheader(
+    "See COVID prevalence for US locations you care about."
+    " Note: This data has not been updated since the New York Times stopped reporting it in 2022"
+)
 
 
-@st.cache()
+@st.cache_data()
 def get_most_recent_data():
     """get the date from most recent covid data file
 
@@ -37,7 +40,7 @@ def get_most_recent_data():
     )
 
 
-@st.cache()
+@st.cache_data()
 def read_data():
     """
     Read the most recent covid data into the app
@@ -50,7 +53,7 @@ def read_data():
     return df, most_recent_date
 
 
-@st.cache()
+@st.cache_data()
 def read_counties() -> dict:
     """
     Read the counties information into a dictionary for quick loading and user input
